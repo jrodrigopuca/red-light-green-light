@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡No te muevas cuando el juego se detenga!</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="game-screen">
+        <h1>¡Verde/Rojo!</h1>
+        <label for="cameraSelect">Seleccionar cámara:</label>
+        <select id="cameraSelect"></select>
+        <button id="toggleGame">⏺️</button>
+        <p id="gameStatus"></p>
+
+        <div id="game-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <p id="timer">60</p>
+            <progress id="progress" value="0" max="100"> 0% </progress>
+        </div>
+    </div>
+
+    <!--
+    <audio id="song" src="song.mp3" loop></audio>
+    -->
+    <script src="script.js"></script>
+</body>
+</html>
