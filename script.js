@@ -2,6 +2,8 @@ const RED = "#8C205C";
 const GREEN = "#0E7373";
 const PROGRESS_VARIATION = 5;
 const TOLERANCE_TIME = 2000;
+const WIDTH = 640;
+const HEIGHT = 480;
 
 let video = document.getElementById("video");
 let canvas = document.getElementById("canvas");
@@ -28,6 +30,10 @@ let progressValue = 0;
 
 let pauseSchedule = []; // Lista con los momentos de pausa y sus duraciones
 
+/**
+ * @function getCameras
+ * @description Obtiene las cámaras disponibles y las muestra en un select.
+ */
 async function getCameras() {
 	const devices = await navigator.mediaDevices.enumerateDevices();
 	const videoDevices = devices.filter((device) => device.kind === "videoinput");
@@ -52,11 +58,16 @@ cameraSelect.addEventListener("change", () => {
 	setupCamera(selectedCameraId);
 });
 
+/**
+ * @function setupCamera
+ * @param deviceId Cámara seleccionada.
+ * @description Inicializa la cámara con las dimensiones y el dispositivo seleccionado.
+ */
 async function setupCamera(deviceId) {
 	const constraints = {
 		video: {
-			width: 640,
-			height: 480,
+			width: WIDTH,
+			height: HEIGHT,
 			deviceId: deviceId ? { exact: deviceId } : undefined,
 		},
 	};
@@ -71,21 +82,32 @@ async function setupCamera(deviceId) {
 	};
 }
 
+/**
+ * @function setProgress
+ * @param value Valor de progreso.
+ * @description Actualiza el valor de progreso y lo muestra en pantalla.
+ */
 function setProgress(value) {
 	progressValue = value;
 	progressDisplay.value = value;
 }
 
+/**
+ * @function loadPoseNet
+ * @description Carga el modelo de PoseNet.
+ */
 async function loadPoseNet() {
 	poseNetModel = await posenet.load({
 		architecture: "MobileNetV1",
 		outputStride: 16,
-		inputResolution: { width: 640, height: 480 },
+		inputResolution: { width: WIDTH, height: HEIGHT },
 		multiplier: 0.75,
 	});
 }
 
 /**
+ * @function validateHeadPresence
+ * @description
  * Verifica si la cabeza del usuario ha sido detectada antes de iniciar el juego.
  * @returns {Promise<boolean>} True si la cabeza es detectada, False si no.
  */
@@ -108,6 +130,12 @@ async function validateHeadPresence() {
 	return true;
 }
 
+/**
+ * @function getHeadPosition
+ * @description Obtiene la posición promedio de la cabeza a partir de los puntos clave detectados.
+ * @param keypoints Puntos clave detectados por PoseNet.
+ * @returns {x, y} Posición promedio de la cabeza.
+ */
 function getHeadPosition(keypoints) {
 	let headParts = ["nose", "leftEye", "rightEye"];
 	let positions = keypoints
@@ -122,7 +150,11 @@ function getHeadPosition(keypoints) {
 }
 
 /**
- * Detecta el movimiento y verifica si el jugador se mueve después de la tolerancia en pausa.
+ * @function detectMovement
+ * @description Detecta el movimiento de la cabeza
+ * - Si el juego está pausado, detecta cualquier movimiento y termina el juego.
+ * - Si el juego está en curso, detecta el movimiento y actualiza el progreso.
+ * - Se llama a sí misma cada cierto intervalo de tiempo.
  */
 async function detectMovement() {
 	if (!isGameActive) return;
@@ -172,7 +204,9 @@ async function detectMovement() {
 }
 
 /**
- * Dibuja los puntos clave en el canvas solo si el juego está en curso.
+ * @function drawPose
+ * @param pose Puntos clave detectados por PoseNet.
+ * @description Dibuja los puntos clave en el canvas.
  */
 function drawPose(pose) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -187,8 +221,10 @@ function drawPose(pose) {
 }
 
 /**
- * Genera la lista de pausas desde el principio.
- * Cada pausa tiene un tiempo de inicio y duración.
+ * @function generatePauseSchedule
+ * @description
+ * - Genera la lista de pausas desde el principio.
+ * - Cada pausa tiene un tiempo de inicio y duración.
  */
 function generatePauseSchedule() {
 	pauseSchedule = [];
@@ -206,7 +242,17 @@ function generatePauseSchedule() {
 }
 
 /**
- * Inicia el juego con pausas predefinidas.
+ * @function startGame
+ * @description Inicia el juego.
+ * - Verifica si la cabeza del usuario está presente.
+ * - Inicia el contador y la detección de movimiento.
+ * - Genera las pausas antes de iniciar el contador.
+ * - Actualiza el estado del juego y el fondo.
+ * - Muestra el mensaje de inicio.
+ * - Deshabilita el botón de inicio.
+ * - Inicia la música de fondo.
+ * - Verifica si es momento de una pausa.
+ * - Verifica si el juego ha terminado.
  */
 async function startGame() {
 	let isHeadDetected = await validateHeadPresence();
@@ -249,7 +295,9 @@ async function startGame() {
 }
 
 /**
- * Pausa el juego por la duración especificada.
+ * @function pauseGame
+ * @param duration Duración de la pausa.
+ * @description Pausa el juego por la duración especificada.
  */
 function pauseGame(duration) {
 	gameStatus.innerText = "¡Alto!";
@@ -270,6 +318,8 @@ function pauseGame(duration) {
 }
 
 /**
+ * @function resumeGame
+ * @description
  * Reanuda el juego después de una pausa.
  */
 function resumeGame() {
@@ -280,6 +330,10 @@ function resumeGame() {
 	//song.play();
 }
 
+/**
+ * @function gameOver
+ * @description Finaliza el juego.
+ */
 function gameOver() {
 	resetGame();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -287,6 +341,10 @@ function gameOver() {
 	// timerDisplay.innerText = "😢";
 }
 
+/**
+ * @function gameWin
+ * @description Gana el juego.
+ */
 function gameWin() {
 	resetGame();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -294,6 +352,10 @@ function gameWin() {
 	timerDisplay.innerText = "🏆";
 }
 
+/**
+ * @function resetGame
+ * @description Reinicia el juego.
+ */
 function resetGame() {
 	isGameActive = false;
 	//song.pause();
