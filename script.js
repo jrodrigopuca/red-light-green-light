@@ -1,5 +1,7 @@
 const RED = "#8C205C";
 const GREEN = "#0E7373";
+const PROGRESS_VARIATION = 5;
+const TOLERANCE_TIME = 2000;
 
 let video = document.getElementById("video");
 let canvas = document.getElementById("canvas");
@@ -147,19 +149,12 @@ async function detectMovement() {
 	}
 
 	if (isPaused) {
-		/*if (!toleranceTimeout) {
-			toleranceTimeout = setTimeout(() => {
-				console.log("Tolerancia terminada, ahora se detecta el movimiento.");
-				toleranceTimeout = null;
-			}, 2000);
-		} else {*/
 		let dx = Math.abs(currentHeadPosition.x - lastHeadPosition.x);
 		let dy = Math.abs(currentHeadPosition.y - lastHeadPosition.y);
 		if (dx > movementThreshold || dy > movementThreshold) {
 			gameOver();
 			return;
 		}
-		//}
 	} else {
 		if (!lastHeadPosition) {
 			lastHeadPosition = currentHeadPosition;
@@ -167,7 +162,7 @@ async function detectMovement() {
 		let dx = Math.abs(currentHeadPosition.x - lastHeadPosition.x);
 		let dy = Math.abs(currentHeadPosition.y - lastHeadPosition.y);
 		if (dx > movementThreshold || dy > movementThreshold) {
-			setProgress(progressValue + 1);
+			setProgress(progressValue + PROGRESS_VARIATION);
 			console.log("progresa");
 		}
 	}
@@ -197,13 +192,16 @@ function drawPose(pose) {
  */
 function generatePauseSchedule() {
 	pauseSchedule = [];
-	let remainingTime = gameDuration;
-	while (remainingTime > 5) {
-		let pauseStart = Math.floor(Math.random() * (remainingTime - 5)) + 5;
+	let currentTime = 5; // Inicia desde el segundo 5 (para evitar una pausa al inicio)
+
+	while (currentTime + 10 < gameDuration) {
+		// Asegurar que quede espacio para pausas
 		let pauseDuration = Math.floor(Math.random() * 4) + 2; // Entre 2 y 5 segundos
-		pauseSchedule.push({ start: pauseStart, duration: pauseDuration });
-		remainingTime -= pauseDuration + 5; // Deja espacio para otra pausa
+		pauseSchedule.push({ start: currentTime, duration: pauseDuration });
+
+		currentTime += pauseDuration + 5; // Mínimo 5 segundos entre pausas
 	}
+
 	console.log("Pausas programadas:", pauseSchedule);
 }
 
@@ -268,16 +266,7 @@ function pauseGame(duration) {
 				resumeGame();
 			}
 		}, duration * 1000);
-	}, 2000);
-	/*setTimeout(() => {
-		console.log("⏳ Tolerancia terminada, ahora se detecta el movimiento.");
-		setTimeout(() => {
-			if (isGameActive) {
-				resumeGame();
-			}
-		}, duration * 1000);
-	}, 2000); // 2 segundos de tolerancia antes de detectar movimiento
-  */
+	}, TOLERANCE_TIME);
 }
 
 /**
